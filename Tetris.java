@@ -7,6 +7,7 @@
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.JFrame;
 import javax.swing.SwingWorker;
@@ -26,20 +27,17 @@ public class Tetris {
         private static int linesCleared;
         private static int targetLines;
         private static int score;
+        private static boolean paused = false;
+        private static boolean isRunning = false;
 	
         private static int[] scoreGuide = {0, 40, 100, 300, 1200, 9001};
         private static int[] timeDelayGuide = {799, 715, 632, 549, 466, 383, 300, 216, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 17};
-    /**
+        
+     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        /*JFrame frame = new JFrame("Tetris");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setMinimumSize(new Dimension(200, 440));
-        board = new Board(grid, piece);
-        frame.add(board);
-        frame.validate();
-        frame.setVisible(true);*/
+
         
         board = new Board(grid, piece);
         frame = new GameFrame(board);
@@ -96,6 +94,19 @@ public class Tetris {
                         piece.drop();
                         targetTime = 0;
                     }
+                    else if (input == KeyEvent.VK_P && isRunning)
+                    {
+                        if (paused)
+                        {
+                            paused = false;
+                            frame.getProgressLabel().setText("Have fun!");
+                        } else
+                        {
+                            paused = true;
+                            frame.getProgressLabel().setText("Paused.");
+                        }
+                    }
+                    
                     board.setPiece(piece);
                     board.update();
                     frame.repaint();
@@ -111,79 +122,85 @@ public class Tetris {
     {
         protected Void doInBackground() throws Exception
         {
+            isRunning = true;
             lol:
             while (true)
             {
-                //check the grid for loss status
-                for (int i = 0; i < 4; i++)
+                if (!paused)
                 {
-                    for (int j = 0; j < grid[0].length; j++)
+                    //check the grid for loss status
+                    for (int i = 0; i < 4; i++)
                     {
-                        if (grid[i][j] > 0)
+                        for (int j = 0; j < grid[0].length; j++)
                         {
-                            return null;
+                            if (grid[i][j] > 0)
+                            {
+                                return null;
+                            }
                         }
                     }
-                }
-                
-                //if we need a piece, spawn a random one
-                if (piece == null)
-                {
-                    piece = createTetrimino();
-                }
-                
-                //sleep for a bit
-                allowInput = true;
-                int timeDelay;
-                if (level > 29) timeDelay = timeDelayGuide[29];
-                else timeDelay = timeDelayGuide[level];
-                targetTime = System.currentTimeMillis() + timeDelay;
-                while (System.currentTimeMillis() < targetTime)
-                {
-                    Thread.sleep(10);
-                }
-                allowInput = false;
-                
-                //attempt to move down
-                boolean c = piece.moveDirectional(3);
-                if (!c)
-                {
-                    //give the user a bit of extra time
-                    /*allowInput = true;
-                    targetTime = System.currentTimeMillis() + 250;
+
+                    //if we need a piece, spawn a random one
+                    if (piece == null)
+                    {
+                        piece = createTetrimino();
+                    }
+
+                    //sleep for a bit
+                    allowInput = true;
+                    int timeDelay;
+                    if (level > 29) timeDelay = timeDelayGuide[29];
+                    else timeDelay = timeDelayGuide[level];
+                    targetTime = System.currentTimeMillis() + timeDelay;
                     while (System.currentTimeMillis() < targetTime)
                     {
                         Thread.sleep(10);
                     }
-                    allowInput = false;*/
+                    if (paused) continue;
+                    allowInput = false;
                     
-                    //turn it into blocks
-                    piece.convertToBlocks(piece.getType());
-                    piece = null;
-                    
-                    //check for filled lines, remove them and shift everything down
-                    int combo = board.clearLine();
-                    
-                    //update variables
-                    linesCleared += combo;
-                    if (linesCleared >= targetLines)
+                    //attempt to move down
+                    boolean c = piece.moveDirectional(3);
+                    if (!c)
                     {
-                        level++;
-                        targetLines = (level+1)*10;
+                        //give the user a bit of extra time
+                        /*allowInput = true;
+                        targetTime = System.currentTimeMillis() + 250;
+                        while (System.currentTimeMillis() < targetTime)
+                        {
+                            Thread.sleep(10);
+                        }
+                        allowInput = false;*/
+
+                        //turn it into blocks
+                        piece.convertToBlocks(piece.getType());
+                        piece = null;
+
+                        //check for filled lines, remove them and shift everything down
+                        int combo = board.clearLine();
+
+                        //update variables
+                        linesCleared += combo;
+                        if (linesCleared >= targetLines)
+                        {
+                            level++;
+                            targetLines = (level+1)*10;
+                        }
+                        score += (level+1)*scoreGuide[combo];
+                        updateLabels();
                     }
-                    score += (level+1)*scoreGuide[combo];
-                    updateLabels();
-                }
-                
-                //update the board
-                board.setPiece(piece);
-                board.update();
-                frame.repaint();
+
+                    //update the board
+                    board.setPiece(piece);
+                    board.update();
+                    frame.repaint();
+            }
             }
         }
         
         protected void done()
         {
+            isRunning = false;
             board.clear();
             frame.getProgressLabel().setText("You lose.");
             frame.repaint();
@@ -213,7 +230,7 @@ public class Tetris {
         else if (med == 6) return new L(4, 2, 1, grid);
         else return new I(5, 2, 1, grid);
     }
-    
+  
     public static void print()
     {
         for (int i = 4; i < grid.length; i++)

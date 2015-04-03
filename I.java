@@ -20,7 +20,7 @@ public class I extends Tetrimino {
         ArrayList<Integer> ivX = new ArrayList<Integer>();
         ArrayList<Integer> ivY = new ArrayList<Integer>();
         ivX.add(0);
-        ivY.add(-1);
+        ivY.add(-2);
         ivX.add(0);
         ivY.add(-1);
         ivX.add(0);

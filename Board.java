@@ -24,7 +24,7 @@ public class Board extends javax.swing.JPanel {
      * Creates new form Board
      */
     public Board(int[][] grid, Tetrimino piece) {
-        initComponents();
+        //initComponents();
         this.grid = grid;
         this.piece = piece;
         setLayout(new GridLayout(grid.length-4, grid[0].length));
