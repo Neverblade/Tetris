@@ -12,6 +12,7 @@ Controls:
     up arrow/x - rotate clockwise
     z - rotate counterclockwise
     space - hard drop
+    p - pause
     
     
 What I Learned:
